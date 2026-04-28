@@ -183,9 +183,9 @@ function showGreen() {
   reactionHint.textContent = 'HIT THE SPACE BAR';
 
   // Trigger flash overlay
-  flashOverlay.classList.remove('active');
-  flashOverlay.offsetHeight; // reflow
-  flashOverlay.classList.add('active');
+  // flashOverlay.classList.remove('active');
+  // flashOverlay.offsetHeight; // reflow
+  // flashOverlay.classList.add('active');
 
   // Record high-precision start time
   greenStartTime = performance.now();
