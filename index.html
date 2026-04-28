@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>F1 Reaction Timer</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <img src="DevDay_Logo.svg" alt="Event Logo" id="event-logo" class="event-logo" width="20px" height="50px"/>
+      <div class="header-title">
+        <span class="header-label">FORMULA 1</span>
+        <span class="header-sub">REACTION CHALLENGE</span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="main-wrapper">
+
+    <!-- SCREEN 1: NAME ENTRY -->
+    <section id="screen-name" class="screen active">
+      <div class="game-container">
+        <div class="carbon-border">
+          <div class="inner-content">
+            <div class="f1-badge">LIGHTS OUT</div>
+            <h1 class="game-title">REACTION<br/><span class="title-accent">TIMER</span></h1>
+            <p class="game-subtitle">Test your reflexes like an F1 driver. When the lights go out, hit <strong>SPACE</strong> the moment you see green.</p>
+            <div class="input-group">
+              <label for="player-name" class="input-label">DRIVER NAME</label>
+              <input type="text" id="player-name" class="name-input" placeholder="Enter your name..." maxlength="20" autocomplete="off" />
+            </div>
+            <button id="btn-start" class="f1-btn f1-btn--primary" onclick="startGame()">
+              <span class="btn-text">ENTER COCKPIT</span>
+              <span class="btn-arrow">▶</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: COUNTDOWN -->
+    <section id="screen-countdown" class="screen">
+      <div class="countdown-container">
+        <div class="countdown-label">GET READY</div>
+        <div id="countdown-number" class="countdown-number">3</div>
+        <div class="countdown-lights">
+          <div class="light" id="light-1"></div>
+          <div class="light" id="light-2"></div>
+          <div class="light" id="light-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: REACTION ZONE (full-screen color) -->
+    <section id="screen-reaction" class="screen">
+      <div id="reaction-zone" class="reaction-zone">
+        <div class="reaction-inner">
+          <div id="reaction-status" class="reaction-status">WAIT FOR GREEN...</div>
+          <div id="reaction-hint" class="reaction-hint">DO NOT PRESS SPACE</div>
+        </div>
+        <div id="flash-overlay" class="flash-overlay"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: RESULT -->
+    <section id="screen-result" class="screen">
+      <div class="game-container">
+        <div class="carbon-border">
+          <div class="inner-content">
+            <div id="result-icon" class="result-icon">🏁</div>
+            <div id="result-label" class="result-label">REACTION TIME</div>
+            <div id="result-name" class="result-name"></div>
+            <div id="result-time" class="result-time"></div>
+            <div id="result-rating" class="result-rating"></div>
+            <div class="result-buttons">
+              <button class="f1-btn f1-btn--primary" onclick="retryGame()">
+                <span class="btn-text">TRY AGAIN</span>
+                <span class="btn-arrow">↺</span>
+              </button>
+              <button class="f1-btn f1-btn--secondary" onclick="resetToStart()">
+                <span class="btn-text">NEW DRIVER</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FALSE START OVERLAY -->
+    <div id="false-start-overlay" class="false-start-overlay">
+      <div class="false-start-inner">
+        <div class="false-start-flag">🚩</div>
+        <div class="false-start-title">JUMP START!</div>
+        <div class="false-start-sub">You pressed too early. Penalty!</div>
+        <div id="false-start-countdown" class="false-start-countdown">Restarting in 3...</div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
