@@ -267,6 +267,16 @@ html, body {
   color: var(--silver-dim);
 }
 
+.code-error {
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--red-bright);
+  min-height: 16px;
+  text-transform: uppercase;
+}
+
 .name-input {
   width: 100%;
   background: rgba(255,255,255,0.04);
@@ -347,6 +357,22 @@ html, body {
   border-color: var(--silver);
   color: var(--white);
   background: rgba(255,255,255,0.06);
+}
+
+.f1-btn--ghost {
+  background: transparent;
+  color: var(--silver-dim);
+  border: 1px solid rgba(255,255,255,0.08);
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+  font-size: 13px;
+  letter-spacing: 3px;
+  padding: 10px 28px;
+}
+
+.f1-btn--ghost:hover {
+  color: var(--silver);
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.04);
 }
 
 .btn-arrow {
@@ -561,6 +587,28 @@ html, body {
   color: var(--yellow);
   text-transform: uppercase;
   min-height: 24px;
+}
+
+.submit-status {
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--silver-dim);
+  text-transform: uppercase;
+  min-height: 18px;
+  transition: color 0.3s;
+}
+
+.dev-credit {
+  margin-top: 18px;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--silver);
+  text-transform: uppercase;
 }
 
 .result-buttons {

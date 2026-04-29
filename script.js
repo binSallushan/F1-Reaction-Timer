@@ -5,14 +5,19 @@
 
 'use strict';
 
+/* ---- API CONFIG ---- */
+const BASE_URL = 'https://minigame-manager-cc533de7be66.herokuapp.com';
+const API_KEY  = 'mgk_72989a02a0fd16401b1dbfe8a47c2de680aac097b7730725c070dc018417d478';
+const GAME_ID  = 'a5c619d4-2d77-4ceb-b711-793f66bad7f9';
+
 /* ---- STATE ---- */
 let playerName       = '';
+let playerCode       = '';
 let gamePhase        = 'name';      // name | countdown | waiting | green | result
 let greenStartTime   = null;
 let colorTimeout     = null;
 let falseStartPenaltyTimeout = null;
 const COLOR_CLASSES  = ['color-red', 'color-yellow', 'color-blue'];
-const COLOR_LABELS   = { 'color-red': 'RED', 'color-yellow': 'YELLOW', 'color-blue': 'BLUE', 'color-green': 'GREEN' };
 
 /* ---- DOM REFS ---- */
 const screenName        = document.getElementById('screen-name');
@@ -30,7 +35,12 @@ const resultName        = document.getElementById('result-name');
 const resultTime        = document.getElementById('result-time');
 const resultRating      = document.getElementById('result-rating');
 const resultIcon        = document.getElementById('result-icon');
-const playerNameInput   = document.getElementById('player-name');
+const submitStatus      = document.getElementById('submit-status');
+const playerCodeInput   = document.getElementById('player-code');
+const btnStart          = document.getElementById('btn-start');
+const btnStartText      = document.getElementById('btn-start-text');
+const btnStartArrow     = document.getElementById('btn-start-arrow');
+const codeError         = document.getElementById('code-error');
 const lights            = [
   document.getElementById('light-1'),
   document.getElementById('light-2'),
@@ -48,28 +58,78 @@ function showScreen(id) {
 }
 
 /* ============================================================
-   START GAME — name entry → countdown
+   START GAME — lookup participant code → countdown
    ============================================================ */
-function startGame() {
-  const rawName = playerNameInput.value.trim();
-  if (!rawName) {
-    playerNameInput.focus();
-    playerNameInput.style.borderBottomColor = '#FF2420';
-    playerNameInput.style.boxShadow = '0 0 0 3px rgba(255,36,32,0.25)';
+async function startGame() {
+  const rawCode = playerCodeInput.value.trim();
+  if (!rawCode) {
+    playerCodeInput.focus();
+    playerCodeInput.style.borderBottomColor = '#FF2420';
+    playerCodeInput.style.boxShadow = '0 0 0 3px rgba(255,36,32,0.25)';
     setTimeout(() => {
-      playerNameInput.style.borderBottomColor = '';
-      playerNameInput.style.boxShadow = '';
+      playerCodeInput.style.borderBottomColor = '';
+      playerCodeInput.style.boxShadow = '';
     }, 1000);
+    showCodeError('PLEASE ENTER YOUR CODE');
     return;
   }
-  playerName = rawName.toUpperCase();
-  gamePhase = 'countdown';
+
+  // Loading state
+  clearCodeError();
+  btnStart.disabled = true;
+  btnStartText.textContent = 'CHECKING...';
+  btnStartArrow.textContent = '⟳';
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/participants/${encodeURIComponent(rawCode)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const fullName = data.fullName || data.name || rawCode;
+      playerName = fullName.toUpperCase();
+      playerCode = rawCode;
+      gamePhase  = 'countdown';
+      showScreen('screen-countdown');
+      runCountdown();
+    } else if (res.status === 404) {
+      showCodeError('CODE NOT FOUND — CHECK AND RETRY');
+    } else {
+      showCodeError(`SERVER ERROR (${res.status}) — TRY AGAIN`);
+    }
+  } catch (err) {
+    showCodeError('CONNECTION ERROR — CHECK INTERNET');
+  } finally {
+    btnStart.disabled = false;
+    btnStartText.textContent = 'ENTER COCKPIT';
+    btnStartArrow.textContent = '▶';
+  }
+}
+
+/* ---- Code error helpers ---- */
+function showCodeError(msg) {
+  codeError.textContent = msg;
+}
+function clearCodeError() {
+  codeError.textContent = '';
+}
+
+/* ============================================================
+   GUEST MODE — play without code, score not submitted
+   ============================================================ */
+function startAsGuest() {
+  clearCodeError();
+  playerName = 'GUEST DRIVER';
+  playerCode = '';          // empty = no submission
+  gamePhase  = 'countdown';
   showScreen('screen-countdown');
   runCountdown();
 }
 
 /* ============================================================
-   RETRY — skip name entry, rerun with same name
+   RETRY — skip code entry, rerun with same driver
    ============================================================ */
 function retryGame() {
   clearAllTimers();
@@ -80,13 +140,15 @@ function retryGame() {
 }
 
 /* ============================================================
-   RESET — back to name entry screen
+   RESET — back to code entry screen
    ============================================================ */
 function resetToStart() {
   clearAllTimers();
-  gamePhase = 'name';
-  playerName = '';
-  playerNameInput.value = '';
+  gamePhase   = 'name';
+  playerName  = '';
+  playerCode  = '';
+  playerCodeInput.value = '';
+  clearCodeError();
   resetReactionZone();
   showScreen('screen-name');
 }
@@ -270,6 +332,7 @@ function showResult(ms) {
   resultName.textContent = playerName;
   resultTime.textContent = `${ms}ms`;
   resultTime.classList.remove('false-start');
+  submitStatus.textContent = '';
 
   // Rating system
   let rating = '';
@@ -300,6 +363,71 @@ function showResult(ms) {
 
   resultIcon.textContent   = icon;
   resultRating.textContent = rating;
+
+  // Submit score to API
+  submitScore(ms);
+}
+
+/* ============================================================
+   SCORE CALCULATION  (0–100)
+   ============================================================ */
+function calcScore(ms) {
+  if (ms <= 150) return 100;
+  if (ms >= 700) return 0;
+  // Linear: 100 at 150ms → 0 at 700ms
+  return Math.round(((700 - ms) / 550) * 100);
+}
+
+/* ============================================================
+   SCORE SUBMISSION
+   ============================================================ */
+async function submitScore(ms) {
+  // Guest mode — no code, no submission
+  if (!playerCode) {
+    submitStatus.textContent = 'GUEST — SCORE NOT RECORDED';
+    submitStatus.style.color = 'var(--silver-dim)';
+    return;
+  }
+
+  submitStatus.textContent = 'SUBMITTING SCORE...';
+  submitStatus.style.color = 'var(--silver-dim)';
+
+  const payload = {
+    userCode: playerCode,
+    gameId:   GAME_ID,
+    score:    calcScore(ms),
+    playTime: parseFloat((ms / 1000).toFixed(3)),
+    metadata: { round: 1, reactionMs: ms }
+  };
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/scores`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key':    API_KEY
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      submitStatus.textContent = '✓ SCORE SUBMITTED';
+      submitStatus.style.color = 'var(--green)';
+    } else if (res.status === 409) {
+      // Duplicate — score already recorded for this participant
+      submitStatus.textContent = '⚠ SCORE ALREADY RECORDED';
+      submitStatus.style.color = 'var(--yellow)';
+    } else {
+      const txt = await res.text().catch(() => '');
+      submitStatus.textContent = `⚠ SUBMIT FAILED (${res.status})`;
+      submitStatus.style.color = 'var(--red-bright)';
+      console.warn('Score submit error:', res.status, txt);
+    }
+  } catch (err) {
+    submitStatus.textContent = '⚠ SUBMIT ERROR';
+    submitStatus.style.color = 'var(--red-bright)';
+    console.error('Score submit exception:', err);
+  }
 }
 
 /* ============================================================
@@ -315,7 +443,7 @@ function clearAllTimers() {
 /* ============================================================
    NAME INPUT — ENTER KEY SUPPORT
    ============================================================ */
-playerNameInput.addEventListener('keydown', (e) => {
+playerCodeInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') startGame();
 });
 

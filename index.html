@@ -33,15 +33,20 @@
             <h1 class="game-title">REACTION<br/><span class="title-accent">TIMER</span></h1>
             <p class="game-subtitle">Test your reflexes like an F1 driver. When the lights go out, hit <strong>SPACE</strong> the moment you see green.</p>
             <div class="input-group">
-              <label for="player-name" class="input-label">DRIVER NAME</label>
-              <input type="text" id="player-name" class="name-input" placeholder="Enter your name..." maxlength="20" autocomplete="off" />
+              <label for="player-code" class="input-label">PARTICIPANT CODE</label>
+              <input type="text" id="player-code" class="name-input" placeholder="Enter your code..." maxlength="20" autocomplete="off" />
+              <div id="code-error" class="code-error"></div>
             </div>
             <button id="btn-start" class="f1-btn f1-btn--primary" onclick="startGame()">
-              <span class="btn-text">ENTER COCKPIT</span>
-              <span class="btn-arrow">▶</span>
+              <span class="btn-text" id="btn-start-text">ENTER COCKPIT</span>
+              <span class="btn-arrow" id="btn-start-arrow">▶</span>
+            </button>
+            <button class="f1-btn f1-btn--ghost" onclick="startAsGuest()">
+              <span class="btn-text">PLAY AS GUEST</span>
             </button>
           </div>
         </div>
+        <div class="dev-credit">Developed by Muaviyah Arsalan</div>
       </div>
     </section>
 
@@ -79,6 +84,7 @@
             <div id="result-name" class="result-name"></div>
             <div id="result-time" class="result-time"></div>
             <div id="result-rating" class="result-rating"></div>
+            <div id="submit-status" class="submit-status"></div>
             <div class="result-buttons">
               <button class="f1-btn f1-btn--primary" onclick="retryGame()">
                 <span class="btn-text">TRY AGAIN</span>
